@@ -1,4 +1,4 @@
-##### nginx ingress with automated TLS with:
+##### Jenkins + nginx ingress with automated TLS with:
 https://letsencrypt.org/
 https://github.com/jetstack/cert-manager
 
@@ -75,3 +75,14 @@ spec:
           serviceName: jenkins
           servicePort: 443
 ```
+
+Now we can watch the cert-manager logs and see the certificate request taking place (via the ACME protocol.
+```
+$ kubectl logs cert-manager-pod --namespace=cert-manager -c ingress-shim
+$ kubectl logs cert-manager-pod --namespace=cert-manager -c cert-manager
+```
+Once cert-manager has finished its magic, you should see two certificates in a Secret. NGINX knows where to find these certificates and will be ready-configured to serve traffic with TLS on the domain.
+```
+$ kubectl get secret --namespace=jenkins
+```
+https://yourhostname.com
