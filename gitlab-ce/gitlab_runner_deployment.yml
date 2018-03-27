@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitlab-runner
+  labels:
+    app: gitlab-runner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gitlab-runner
+  template:
+    metadata:
+      name: gitlab-runner
+      labels:
+        app: gitlab-runner
+    spec:
+      containers:
+      - args:
+        - run
+        image: gitlab/gitlab-runner:alpine-v10.6.0
+        name: gitlab-runner
+        volumeMounts:
+        - mountPath: /etc/gitlab-runner
+          name: config
+        - mountPath: /etc/ssl/certs
+          name: cacerts
+          readOnly: true
+      volumes:
+      - configMap:
+          name: gitlab-runner
+        name: config
+      - hostPath:
+          path: /etc/ssl/certs
+        name: cacerts
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gitlab-runner
+  labels:
+    app: gitlab-runner
+data:
+  config.toml: |-
+    concurrent = 1
+    check_interval = 0
+
+    [[runners]]
+    name = "Kubernetes Runner"
+    url = "http://gitlab-ce-url/"
+    token = "uniq-token"
+    executor = "kubernetes"
+    [runners.cache]
+    [runners.kubernetes]
+        host = ""
+        cert_file = ""
+        key_file = ""
+        ca_file = ""
+        image = ""
+        namespace = ""
+        privileged = true
+        cpus = ""
+        memory = ""
+        service_cpus = ""
+        service_memory = ""
+        helper_cpus = ""
+        helper_memory = ""
+        helper_image = ""
