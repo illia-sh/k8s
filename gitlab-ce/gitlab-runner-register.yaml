@@ -1,0 +1,37 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gitlab-runner-register
+spec:
+  completions: 1
+  template:
+    metadata:
+      labels:
+        app: gitlab
+        component: runner
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: runner
+        image: gitlab/gitlab-runner:alpine-v10.6.0
+        command:
+        - sh
+        - -c
+        - |
+          output=`/usr/bin/gitlab-runner register` || echo $output && \
+          cat /config.toml
+        env:
+        - name: CONFIG_FILE
+          value: /config.toml
+        - name: REGISTER_NON_INTERACTIVE
+          value: 'true'
+        - name: REGISTRATION_TOKEN
+          value: '<runners registration token here>' # <- put your runner token here
+        - name: RUNNER_NAME
+          value: Kubernetes Runner
+        - name: CI_SERVER_URL
+          value: 'http://<ip address of your gitlab instance>' # <- put the IP of your gitlab instance here
+        - name: RUNNER_EXECUTOR
+          value: kubernetes
+        - name: KUBERNETES_PRIVILEGED
+          value: 'true'
